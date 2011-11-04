@@ -163,7 +163,7 @@ class Manager
   
   def superputs(content)
     puts content
-    `say -v #{$my_voice} '#{content.gsub("'", "\\'")}'` if $sys_voice == true
+    `say -v #{$my_voice} '#{content.gsub("'", "\\\\'").gsub(")", "\)").gsub("(", "\(")}'` if $sys_voice == true
   end
   
   def supergets
