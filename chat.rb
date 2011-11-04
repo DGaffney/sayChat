@@ -6,14 +6,20 @@ $your_voice = "Agnes"
 VOICES = {"agnes" => "Agnes", "kathy" => "Kathy", "princess" => "Princess", "vicki" => "Vicki", "victoria" => "Victoria", "bruce" => "Bruce", "fred" => "Fred", "junior" => "Junior", "ralph" => "Ralph", "albert" => "Albert", "bad news" => "Bad News", "bahh" => "Bahh", "bells" => "Bells", "boing" => "Boing", "bubbles" => "Bubbles", "cellos" => "Cellos", "deranged" => "Deranged", "good news" => "Good News", "hysterical" => "Hysterical", "pipe organ" => "Pipe Organ", "trinoids" => "Trinoids", "whisper" => "Whisper", "zarvox" => "Zarvox"}
 
 class Manager
-  
+
   attr_accessor :jid, :cl
   
   def sign_in
-    superputs "Great job! What is your username?"
-    username = supergets
-    superputs "And what is your password?"
-    password = supergets
+    username = ARGV[0]
+    if username.nil?
+      superputs "Great job! What is your username?"
+      username = supergets
+    end
+    password = ARGV[1]
+    if password.nil?
+      superputs "And what is your password?"
+      password = supergets
+    end
     superputs "I'm going to try signing you in now."
     @cl = nil
     while @cl.nil?
@@ -25,6 +31,7 @@ class Manager
         @cl.send(Jabber::Presence.new.set_type(:available))
       rescue
         @cl = nil
+        superputs "DID NOT WORK."
         superputs "Great job! What is your username?"
         username = supergets
         superputs "And what is your password?"
@@ -125,9 +132,10 @@ class Manager
       case m.type
       when :chat
         if m.from.to_s.gsub(/@.*/, '').downcase == user.downcase
-          Thread.new { message_puts m.body, user }.run
+          # Thread.new { message_puts m.body, user }.run
+          Thread.new { `say #{m.body}` }.run
+          puts m.inspect
           print "(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[34myou:\e[0m\e[0m "
-          @cl.send Jabber::Message.new("#{user}@jabber.org", `#{m.body}`).set_type(:chat)
         end
       when :error
         puts "\n ERROR (#{user} MAYBE NOT AVAILABLE?)"
@@ -141,7 +149,7 @@ class Manager
     loop do
       print "(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[34myou:\e[0m\e[0m "
       message = supergets.strip
-      message = "3t#{$your_voice}3t#{message.gsub("'", "\\'")}"
+      # message = "3t#{$your_voice}3t#{message.gsub("'", "\\'")}"
       @cl.send Jabber::Message.new("#{user}@jabber.org", message).set_type(:chat)
     end
     
@@ -163,16 +171,18 @@ class Manager
   
   def superputs(content)
     puts content
-    `say -v #{$my_voice} '#{content.gsub("'", "").gsub(")", "\)").gsub("(", "\(").gsub("()))", " 3t ")}'` if $sys_voice == true
+    # `say -v #{$my_voice} '#{content.gsub("'", "").gsub(")", "\)").gsub("(", "\(").gsub("()))", " 3t ")}'` if $sys_voice == true
   end
   
   def supergets
-    answer = gets
-    puts "\t\t(GETS RECIEVES: #{answer})"
-    if answer.strip.downcase == "exit"
+    STDIN.flush
+    STDOUT.flush
+    answer = STDIN.gets.strip
+    puts "\t\t(GETS RECIEVES: #{answer.inspect})"
+    if answer.downcase == "exit"
       exit
     else
-      return answer.strip.downcase
+      return answer.downcase
     end
   end
   
