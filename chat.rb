@@ -2,7 +2,7 @@ require 'rubygems'
 require 'xmpp4r'
 $sys_voice = true
 $my_voice = "Kathy"
-$your_voice = "Fred"
+$your_voice = "Agnes"
 VOICES = {"agnes" => "Agnes", "kathy" => "Kathy", "princess" => "Princess", "vicki" => "Vicki", "victoria" => "Victoria", "bruce" => "Bruce", "fred" => "Fred", "junior" => "Junior", "ralph" => "Ralph", "albert" => "Albert", "bad news" => "Bad News", "bahh" => "Bahh", "bells" => "Bells", "boing" => "Boing", "bubbles" => "Bubbles", "cellos" => "Cellos", "deranged" => "Deranged", "good news" => "Good News", "hysterical" => "Hysterical", "pipe organ" => "Pipe Organ", "trinoids" => "Trinoids", "whisper" => "Whisper", "zarvox" => "Zarvox"}
 
 class Manager
@@ -121,6 +121,7 @@ class Manager
   end
   
   def chat_loop(user)
+    print "(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[34myou:\e[0m\e[0m "
     @cl.add_message_callback do |m|
       case m.type
       when :chat
@@ -141,7 +142,7 @@ class Manager
     puts " (((  ) CHATTING WITH #{user.upcase} (((  ) "
     loop do
       message = supergets.strip
-      message = "()))#{$your_voice}((()#{message.gsub("'", "\\'")}"
+      message = "3t#{$your_voice}3t#{message.gsub("'", "\\'")}"
       @cl.send Jabber::Message.new("#{user}@jabber.org", message).set_type(:chat)
     end
     
@@ -163,7 +164,7 @@ class Manager
   
   def superputs(content)
     puts content
-    `say -v #{$my_voice} '#{content.gsub("'", "\\\\'").gsub(")", "\)").gsub("(", "\(")}'` if $sys_voice == true
+    `say -v #{$my_voice} '#{content.gsub("'", "").gsub(")", "\)").gsub("(", "\(").gsub("()))", " 3t ")}'` if $sys_voice == true
   end
   
   def supergets
@@ -177,7 +178,7 @@ class Manager
   
   def message_puts(content, user)
     puts "\n(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[32m#{user}:\e[0m\e[0m #{content}"
-    `say -v #{content.split("((()")[0].gsub("()))", "")} #{content.split("((()")[1]}`
+    `say -v #{content.split("3t")[0]} #{content.split("3t")[1]}`
   end
 end
 
