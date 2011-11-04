@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'xmpp4r'
 $sys_voice = true
-$my_voice = "Kathy"
+$my_voice = "Vicki"
 $your_voice = "Agnes"
 VOICES = {"agnes" => "Agnes", "kathy" => "Kathy", "princess" => "Princess", "vicki" => "Vicki", "victoria" => "Victoria", "bruce" => "Bruce", "fred" => "Fred", "junior" => "Junior", "ralph" => "Ralph", "albert" => "Albert", "bad news" => "Bad News", "bahh" => "Bahh", "bells" => "Bells", "boing" => "Boing", "bubbles" => "Bubbles", "cellos" => "Cellos", "deranged" => "Deranged", "good news" => "Good News", "hysterical" => "Hysterical", "pipe organ" => "Pipe Organ", "trinoids" => "Trinoids", "whisper" => "Whisper", "zarvox" => "Zarvox"}
 
@@ -43,46 +43,52 @@ class Manager
     answer = supergets
     while answer != "done"
       if answer == 'voice'
-        previous_voice = $voice
-        superputs 'What do you want to sound like? (Choose from Agnes, Kathy, Princess, Vicki, Victoria, Bruce, Fred, Junior, Ralph, Albert, "Bad News", Bahh, Bells, Boing, Bubbles, Cellos, Deranged, "Good News", Hysterical, "Pipe Organ", Trinoids, Whisper, Zarvox)'
-        answer = supergets
-        while !VOICES.keys.include?(answer)
-          superputs "Please try to change your voice again."
-          answer = supergets
-        end
-        $your_voice = VOICES[answer]
-        superputs "Your voice is now #{answer}. Do you think this is a good voice to use? (y/n)"
-        while !["y", "n"].include?(answer)
-          superputs "I really want to know how you feel about how you sound."
-          answer = supergets
-        end
-        if answer == "n"
-          superputs "Ok. I am now going to change your voice back to your previous voice."
-          $your_voice = previous_voice
-        end        
+        voice(answer)
       elsif answer == '4d3d3d3'
-        previous_voice = $voice
-        superputs 'What do you want me to sound like? (Choose from Agnes, Kathy, Princess, Vicki, Victoria, Bruce, Fred, Junior, Ralph, Albert, "Bad News", Bahh, Bells, Boing, Bubbles, Cellos, Deranged, "Good News", Hysterical, "Pipe Organ", Trinoids, Whisper, Zarvox)'
-        answer = supergets
-        while !VOICES.keys.include?(answer)
-          superputs "Please try to change my voice again."
-          answer = supergets
-        end
-        $my_voice = VOICES[answer]
-        superputs "My voice is now #{answer}. Do you like how I sound? (y/n)"
-        while !["y", "n"].include?(answer)
-          superputs "I really want to know how you feel about how I sound."
-          answer = supergets
-        end
-        if answer == "n"
-          superputs "Ok. I am now going to change my voice back to my previous voice."
-          $my_voice = previous_voice
-          superputs "I now sound like this."
-        end
+        fourd3d3d3(answer)
       end
     end
   end
+  def voice
+    previous_voice = $voice
+    superputs 'What do you want to sound like? (Choose from Agnes, Kathy, Princess, Vicki, Victoria, Bruce, Fred, Junior, Ralph, Albert, "Bad News", Bahh, Bells, Boing, Bubbles, Cellos, Deranged, "Good News", Hysterical, "Pipe Organ", Trinoids, Whisper, Zarvox)'
+    answer = supergets
+    while !VOICES.keys.include?(answer)
+      superputs "Please try to change your voice again."
+      answer = supergets
+    end
+    $your_voice = VOICES[answer]
+    superputs "Your voice is now #{answer}. Do you think this is a good voice to use? (y/n)"
+    while !["y", "n"].include?(answer)
+      superputs "I really want to know how you feel about how you sound."
+      answer = supergets
+    end
+    if answer == "n"
+      superputs "Ok. I am now going to change your voice back to your previous voice."
+      $your_voice = previous_voice
+    end        
+  end
   
+  def fourd3d3d3
+    previous_voice = $voice
+    superputs 'What do you want me to sound like? (Choose from Agnes, Kathy, Princess, Vicki, Victoria, Bruce, Fred, Junior, Ralph, Albert, "Bad News", Bahh, Bells, Boing, Bubbles, Cellos, Deranged, "Good News", Hysterical, "Pipe Organ", Trinoids, Whisper, Zarvox)'
+    answer = supergets
+    while !VOICES.keys.include?(answer)
+      superputs "Please try to change my voice again."
+      answer = supergets
+    end
+    $my_voice = VOICES[answer]
+    superputs "My voice is now #{answer}. Do you like how I sound? (y/n)"
+    while !["y", "n"].include?(answer)
+      superputs "I really want to know how you feel about how I sound."
+      answer = supergets
+    end
+    if answer == "n"
+      superputs "Ok. I am now going to change my voice back to my previous voice."
+      $my_voice = previous_voice
+      superputs "I now sound like this."
+    end
+  end
   def show_management
     superputs "What would you like to do today, #{@jid.node}?"
     # superputs "To see who else is online, type 'friends'."
@@ -127,7 +133,7 @@ class Manager
         if m.from.to_s.gsub(/@.*/, '').downcase == user.downcase
           Thread.new { message_puts m.body, user }.run
           print "(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[34myou:\e[0m\e[0m "
-          @cl.send Jabber::Message.new("#{user}@jabber.org", `#{m.body}`).set_type(:chat)
+          @cl.send Jabber::Message.new("#{user}@jabber.org", "#{m.body}").set_type(:chat)
         end
       when :error
         puts "\n ERROR (#{user} MAYBE NOT AVAILABLE?)"
@@ -141,12 +147,24 @@ class Manager
     loop do
       print "(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[34myou:\e[0m\e[0m "
       message = supergets.strip
+      determine_function(message)
       message = "3t#{$your_voice}3t#{message.gsub("'", "\\'")}"
+      puts message.inspect
       @cl.send Jabber::Message.new("#{user}@jabber.org", message).set_type(:chat)
+      print "\n"
     end
     
     @cl.close
     
+  end
+  
+  def determine_function(message)
+    if message[0..8].downcase == "3t: voice" || message[0..10].downcase == "())): voice" || message[0..10].downcase == "(((): voice"
+      voice
+    elsif message[0..11].downcase == "3t: 43d3d3d3" || message[0..13].downcase == "())): 43d3d3d3" || message[0..13].downcase == "(((): 43d3d3d3"
+      voice
+    # elsif message[0..10].downcase == "3t: friends" || message[0..12].downcase == "())): friends" || message[0..12].downcase == "(((): friends"
+    end
   end
   
   def startup
