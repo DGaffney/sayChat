@@ -1,8 +1,8 @@
 require 'rubygems'
 require 'xmpp4r'
-$sys_voice = false
+$sys_voice = true
 $my_voice = "Kathy"
-$your_voice = "Agnes"
+$your_voice = "Fred"
 VOICES = {"agnes" => "Agnes", "kathy" => "Kathy", "princess" => "Princess", "vicki" => "Vicki", "victoria" => "Victoria", "bruce" => "Bruce", "fred" => "Fred", "junior" => "Junior", "ralph" => "Ralph", "albert" => "Albert", "bad news" => "Bad News", "bahh" => "Bahh", "bells" => "Bells", "boing" => "Boing", "bubbles" => "Bubbles", "cellos" => "Cellos", "deranged" => "Deranged", "good news" => "Good News", "hysterical" => "Hysterical", "pipe organ" => "Pipe Organ", "trinoids" => "Trinoids", "whisper" => "Whisper", "zarvox" => "Zarvox"}
 
 class Manager
@@ -23,7 +23,6 @@ class Manager
         @cl.connect
         @cl.auth(password)
         @cl.send(Jabber::Presence.new.set_type(:available))
-        puts "WOO"
       rescue
         @cl = nil
         superputs "Great job! What is your username?"
@@ -35,16 +34,7 @@ class Manager
     end
     show_management
   end
-  
-  # def add_friend
-  # end
-  # 
-  # def remove_friend
-  # end
-  # 
-  # def show_friends
-  # end
-  
+    
   def show_settings
     superputs "SETTINGS!"
     superputs "To change your voice, type 'voice'"
@@ -117,11 +107,12 @@ class Manager
       partner = nil
       while partner.nil?
         superputs "Who do you want to chat with? Please enter a username."
-        potential_partner = gets
+        potential_partner = supergets
         superputs "You will enter chat with #{potential_partner}. Does this look right? (y/n)"
+        answer = supergets
         while !["y", "n"].include?(answer)
           superputs "Please try again..."
-          answer = gets
+          answer = supergets
           patner = potential_partner if answer == y
         end
       end
