@@ -113,8 +113,8 @@ class Manager
         while !["y", "n"].include?(answer)
           superputs "Please try again..."
           answer = supergets
-          patner = potential_partner if answer == y
         end
+        partner = potential_partner if answer == "y"
       end
       chat_loop(partner)
     end
