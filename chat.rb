@@ -121,7 +121,6 @@ class Manager
   end
   
   def chat_loop(user)
-    print "(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[34myou:\e[0m\e[0m "
     @cl.add_message_callback do |m|
       case m.type
       when :chat
@@ -141,6 +140,7 @@ class Manager
     
     puts " (((  ) CHATTING WITH #{user.upcase} (((  ) "
     loop do
+      print "(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[34myou:\e[0m\e[0m "
       message = supergets.strip
       message = "3t#{$your_voice}3t#{message.gsub("'", "\\'")}"
       @cl.send Jabber::Message.new("#{user}@jabber.org", message).set_type(:chat)
@@ -178,7 +178,7 @@ class Manager
   
   def message_puts(content, user)
     puts "\n(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[32m#{user}:\e[0m\e[0m #{content}"
-    `say -v #{content.split("3t")[0]} #{content.split("3t")[1]}`
+    `say -v #{content.split("3t")[1]} '#{content.split("3t")[2]}'`
   end
 end
 
