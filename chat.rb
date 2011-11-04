@@ -114,12 +114,22 @@ class Manager
     when "settings"
       show_settings
     when "chat"
-      chat_loop
+      partner = nil
+      while partner.nil?
+        superputs "Who do you want to chat with? Please enter a username."
+        potential_partner = gets
+        superputs "You will enter chat with #{potential_partner}. Does this look right? (y/n)"
+        while !["y", "n"].include?(answer)
+          superputs "Please try again..."
+          answer = gets
+          patner = potential_partner if answer == y
+        end
+      end
+      chat_loop(partner)
     end
   end
   
-  def chat_loop
-    user = "dgaff"
+  def chat_loop(user)
     @cl.add_message_callback do |m|
       case m.type
       when :chat
