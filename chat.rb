@@ -127,7 +127,6 @@ class Manager
         if m.from.to_s.gsub(/@.*/, '').downcase == user.downcase
           Thread.new { message_puts m.body, user }.run
           print "(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[34myou:\e[0m\e[0m "
-          debugger
           @cl.send Jabber::Message.new("#{user}@jabber.org", `#{m.body}`).set_type(:chat)
         end
       when :error
@@ -169,6 +168,7 @@ class Manager
   
   def supergets
     answer = gets
+    puts "\t\t(GETS RECIEVES: #{answer})"
     if answer.strip.downcase == "exit"
       exit
     else
@@ -177,7 +177,7 @@ class Manager
   end
   
   def message_puts(content, user)
-    puts "\n(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[32m#{user}:\e[0m\e[0m #{content}"
+    # puts "\n(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[32m#{user}:\e[0m\e[0m #{content}"
     `say -v #{content.split("3t")[1]} '#{content.split("3t")[2]}'`
   end
 end
