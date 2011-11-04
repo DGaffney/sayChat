@@ -50,6 +50,7 @@ class Manager
       end
     end
   end
+
   def voice
     previous_voice = $voice
     superputs 'What do you want to sound like? (Choose from Agnes, Kathy, Princess, Vicki, Victoria, Bruce, Fred, Junior, Ralph, Albert, "Bad News", Bahh, Bells, Boing, Bubbles, Cellos, Deranged, "Good News", Hysterical, "Pipe Organ", Trinoids, Whisper, Zarvox)', true
@@ -90,6 +91,7 @@ class Manager
       superputs "I now sound like this.", true
     end
   end
+
   def show_management
     superputs "What would you like to do today, #{@jid.node}?", true
     # superputs "To see who else is online, type 'friends'."
@@ -134,7 +136,6 @@ class Manager
         if m.from.to_s.gsub(/@.*/, '').downcase == user.downcase
           Thread.new { message_puts m.body, user }.run
           print "(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[34myou:\e[0m\e[0m "
-          # @cl.send Jabber::Message.new("#{user}@jabber.org", "#{m.body}").set_type(:chat)
         end
       when :error
         puts "\n ERROR (#{user} MAYBE NOT AVAILABLE?)"
@@ -150,7 +151,6 @@ class Manager
       message = supergets.strip
       determine_function(message)
       message = "3t#{$your_voice}3t#{message.gsub("'", "\\'")}"
-      puts message.inspect
       @cl.send Jabber::Message.new("#{user}@jabber.org", message).set_type(:chat)
       print "\n"
     end
@@ -162,8 +162,8 @@ class Manager
   def determine_function(message)
     if message[0..8].downcase == "3t: voice" || message[0..10].downcase == "())): voice" || message[0..10].downcase == "(((): voice"
       voice
-    elsif message[0..11].downcase == "3t: 43d3d3d3" || message[0..13].downcase == "())): 43d3d3d3" || message[0..13].downcase == "(((): 43d3d3d3"
-      voice
+    elsif message[0..11].downcase == "3t: 4d3d3d3" || message[0..13].downcase == "())): 4d3d3d3" || message[0..13].downcase == "(((): 4d3d3d3"
+      four
     # elsif message[0..10].downcase == "3t: friends" || message[0..12].downcase == "())): friends" || message[0..12].downcase == "(((): friends"
     end
   end
@@ -192,7 +192,6 @@ class Manager
   
   def supergets
     answer = gets
-    puts "\t\t(GETS RECIEVES: #{answer})"
     if answer.strip.downcase == "exit"
       exit
     else
@@ -201,8 +200,8 @@ class Manager
   end
   
   def message_puts(content, user)
-    puts "\n(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[32m#{user}:\e[0m\e[0m #{content}"
-    `say -v #{content.split("3t")[1]} '#{content.split("3t")[2]}'`
+    puts "\n(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[32m#{user}:\e[0m\e[0m #{content.split("3t")[2]}\n"
+    `say -v '#{content.split("3t")[1]}' '#{content.split("3t")[2]}'`
   end
 end
 
