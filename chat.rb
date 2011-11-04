@@ -1,7 +1,8 @@
 require 'rubygems'
 require 'xmpp4r'
-$sys_voice = true
-$my_voice = "Kathy"
+$sys_voice = false
+$user_voice = true
+$my_voice = "Vicki"
 $your_voice = "Agnes"
 VOICES = {"agnes" => "Agnes", "kathy" => "Kathy", "princess" => "Princess", "vicki" => "Vicki", "victoria" => "Victoria", "bruce" => "Bruce", "fred" => "Fred", "junior" => "Junior", "ralph" => "Ralph", "albert" => "Albert", "bad news" => "Bad News", "bahh" => "Bahh", "bells" => "Bells", "boing" => "Boing", "bubbles" => "Bubbles", "cellos" => "Cellos", "deranged" => "Deranged", "good news" => "Good News", "hysterical" => "Hysterical", "pipe organ" => "Pipe Organ", "trinoids" => "Trinoids", "whisper" => "Whisper", "zarvox" => "Zarvox"}
 
@@ -10,6 +11,7 @@ class Manager
   attr_accessor :jid, :cl
   
   def sign_in
+<<<<<<< HEAD
     username = ARGV[0]
     if username.nil?
       superputs "Great job! What is your username?"
@@ -21,6 +23,13 @@ class Manager
       password = supergets
     end
     superputs "I'm going to try signing you in now."
+=======
+    superputs "Great job! What is your username?", true
+    username = supergets
+    superputs "And what is your password?", true
+    password = supergets
+    superputs "I'm going to try signing you in now.", true
+>>>>>>> 43321ac119d5978d50362f560944f860986db6ce
     @cl = nil
     while @cl.nil?
       begin
@@ -31,12 +40,16 @@ class Manager
         @cl.send(Jabber::Presence.new.set_type(:available))
       rescue
         @cl = nil
+<<<<<<< HEAD
         superputs "DID NOT WORK."
         superputs "Great job! What is your username?"
+=======
+        superputs "Great job! What is your username?", true
+>>>>>>> 43321ac119d5978d50362f560944f860986db6ce
         username = supergets
-        superputs "And what is your password?"
+        superputs "And what is your password?", true
         password = supergets
-        superputs "I'm going to try signing you in now."
+        superputs "I'm going to try signing you in now.", true
       end
     end
     show_management
@@ -44,59 +57,65 @@ class Manager
     
   def show_settings
     superputs "SETTINGS!"
-    superputs "To change your voice, type 'voice'"
-    superputs "To change my voice, type '4d3d3d3'"
-    superputs "When you are done here, type 'done'"
+    superputs "To change your voice, type 'voice'", true
+    superputs "To change my voice, type '4d3d3d3'", true
+    superputs "When you are done here, type 'done'", true
     answer = supergets
     while answer != "done"
       if answer == 'voice'
-        previous_voice = $voice
-        superputs 'What do you want to sound like? (Choose from Agnes, Kathy, Princess, Vicki, Victoria, Bruce, Fred, Junior, Ralph, Albert, "Bad News", Bahh, Bells, Boing, Bubbles, Cellos, Deranged, "Good News", Hysterical, "Pipe Organ", Trinoids, Whisper, Zarvox)'
-        answer = supergets
-        while !VOICES.keys.include?(answer)
-          superputs "Please try to change your voice again."
-          answer = supergets
-        end
-        $your_voice = VOICES[answer]
-        superputs "Your voice is now #{answer}. Do you think this is a good voice to use? (y/n)"
-        while !["y", "n"].include?(answer)
-          superputs "I really want to know how you feel about how you sound."
-          answer = supergets
-        end
-        if answer == "n"
-          superputs "Ok. I am now going to change your voice back to your previous voice."
-          $your_voice = previous_voice
-        end        
+        voice(answer)
       elsif answer == '4d3d3d3'
-        previous_voice = $voice
-        superputs 'What do you want me to sound like? (Choose from Agnes, Kathy, Princess, Vicki, Victoria, Bruce, Fred, Junior, Ralph, Albert, "Bad News", Bahh, Bells, Boing, Bubbles, Cellos, Deranged, "Good News", Hysterical, "Pipe Organ", Trinoids, Whisper, Zarvox)'
-        answer = supergets
-        while !VOICES.keys.include?(answer)
-          superputs "Please try to change my voice again."
-          answer = supergets
-        end
-        $my_voice = VOICES[answer]
-        superputs "My voice is now #{answer}. Do you like how I sound? (y/n)"
-        while !["y", "n"].include?(answer)
-          superputs "I really want to know how you feel about how I sound."
-          answer = supergets
-        end
-        if answer == "n"
-          superputs "Ok. I am now going to change my voice back to my previous voice."
-          $my_voice = previous_voice
-          superputs "I now sound like this."
-        end
+        fourd3d3d3(answer)
       end
     end
   end
+  def voice
+    previous_voice = $voice
+    superputs 'What do you want to sound like? (Choose from Agnes, Kathy, Princess, Vicki, Victoria, Bruce, Fred, Junior, Ralph, Albert, "Bad News", Bahh, Bells, Boing, Bubbles, Cellos, Deranged, "Good News", Hysterical, "Pipe Organ", Trinoids, Whisper, Zarvox)', true
+    answer = supergets
+    while !VOICES.keys.include?(answer)
+      superputs "Please try to change your voice again.", true
+      answer = supergets
+    end
+    $your_voice = VOICES[answer]
+    superputs "Your voice is now #{answer}. Do you think this is a good voice to use? (y/n)", true
+    while !["y", "n"].include?(answer)
+      superputs "I really want to know how you feel about how you sound.", true
+      answer = supergets
+    end
+    if answer == "n"
+      superputs "Ok. I am now going to change your voice back to your previous voice.", true
+      $your_voice = previous_voice
+    end        
+  end
   
+  def fourd3d3d3
+    previous_voice = $voice
+    superputs 'What do you want me to sound like? (Choose from Agnes, Kathy, Princess, Vicki, Victoria, Bruce, Fred, Junior, Ralph, Albert, "Bad News", Bahh, Bells, Boing, Bubbles, Cellos, Deranged, "Good News", Hysterical, "Pipe Organ", Trinoids, Whisper, Zarvox)', true
+    answer = supergets
+    while !VOICES.keys.include?(answer)
+      superputs "Please try to change my voice again.", true
+      answer = supergets
+    end
+    $my_voice = VOICES[answer]
+    superputs "My voice is now #{answer}. Do you like how I sound? (y/n)", true
+    while !["y", "n"].include?(answer)
+      superputs "I really want to know how you feel about how I sound.", true
+      answer = supergets
+    end
+    if answer == "n"
+      superputs "Ok. I am now going to change my voice back to my previous voice.", true
+      $my_voice = previous_voice
+      superputs "I now sound like this.", true
+    end
+  end
   def show_management
-    superputs "What would you like to do today, #{@jid.node}?"
+    superputs "What would you like to do today, #{@jid.node}?", true
     # superputs "To see who else is online, type 'friends'."
-    superputs "To see your settings and edit them, type 'settings'."
-    superputs "To chat with people, type 'chat'"
-    superputs "To leave our wonderful universe, type 'exit' at any time."
-    superputs "(No matter where you are in our program, you can always access these utilities by typing '()))' before any command)"
+    superputs "To see your settings and edit them, type 'settings'.", true
+    superputs "To chat with people, type 'chat'", true
+    superputs "To leave our wonderful universe, type 'exit' at any time.", true
+    superputs "(No matter where you are in our program, you can always access these utilities by typing '()))' before any command)", true
     answer = supergets
     loop do
       run_command(answer)
@@ -113,12 +132,12 @@ class Manager
     when "chat"
       partner = nil
       while partner.nil?
-        superputs "Who do you want to chat with? Please enter a username."
+        superputs "Who do you want to chat with? Please enter a username.", true
         potential_partner = supergets
-        superputs "You will enter chat with #{potential_partner}. Does this look right? (y/n)"
+        superputs "You will enter chat with #{potential_partner}. Does this look right? (y/n)", true
         answer = supergets
         while !["y", "n"].include?(answer)
-          superputs "Please try again..."
+          superputs "Please try again...", true
           answer = supergets
         end
         partner = potential_partner if answer == "y"
@@ -136,6 +155,10 @@ class Manager
           Thread.new { `say #{m.body}` }.run
           puts m.inspect
           print "(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[34myou:\e[0m\e[0m "
+<<<<<<< HEAD
+=======
+          # @cl.send Jabber::Message.new("#{user}@jabber.org", "#{m.body}").set_type(:chat)
+>>>>>>> 43321ac119d5978d50362f560944f860986db6ce
         end
       when :error
         puts "\n ERROR (#{user} MAYBE NOT AVAILABLE?)"
@@ -149,19 +172,35 @@ class Manager
     loop do
       print "(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[34myou:\e[0m\e[0m "
       message = supergets.strip
+<<<<<<< HEAD
       # message = "3t#{$your_voice}3t#{message.gsub("'", "\\'")}"
+=======
+      determine_function(message)
+      message = "3t#{$your_voice}3t#{message.gsub("'", "\\'")}"
+      puts message.inspect
+>>>>>>> 43321ac119d5978d50362f560944f860986db6ce
       @cl.send Jabber::Message.new("#{user}@jabber.org", message).set_type(:chat)
+      print "\n"
     end
     
     @cl.close
     
   end
   
+  def determine_function(message)
+    if message[0..8].downcase == "3t: voice" || message[0..10].downcase == "())): voice" || message[0..10].downcase == "(((): voice"
+      voice
+    elsif message[0..11].downcase == "3t: 43d3d3d3" || message[0..13].downcase == "())): 43d3d3d3" || message[0..13].downcase == "(((): 43d3d3d3"
+      voice
+    # elsif message[0..10].downcase == "3t: friends" || message[0..12].downcase == "())): friends" || message[0..12].downcase == "(((): friends"
+    end
+  end
+  
   def startup
-    superputs "Hello user at #{`hostname`}! So great to have you on our wonderful chat program. May I sign you in? (y/n)"
+    superputs "Hello user at #{`hostname`}! So great to have you on our wonderful chat program. May I sign you in? (y/n)", true
     answer = supergets
     while !["y","n"].include?(answer.strip.downcase)
-      superputs "Sorry, try again."
+      superputs "Sorry, try again.", true
       answer = supergets
     end
     if answer.strip.downcase == "y"
@@ -169,9 +208,20 @@ class Manager
     end
   end
   
+<<<<<<< HEAD
   def superputs(content)
     puts content
     # `say -v #{$my_voice} '#{content.gsub("'", "").gsub(")", "\)").gsub("(", "\(").gsub("()))", " 3t ")}'` if $sys_voice == true
+=======
+  def superputs(content, system=false)
+    if system
+      puts content
+      `say -v #{$my_voice} '#{content.gsub("'", "").gsub(")", "\)").gsub("(", "\(").gsub("()))", " 3t ")}'` if $sys_voice == true
+    else
+      puts content
+      `say -v #{$my_voice} '#{content.gsub("'", "").gsub(")", "\)").gsub("(", "\(").gsub("()))", " 3t ")}'` if $user_voice == true
+    end
+>>>>>>> 43321ac119d5978d50362f560944f860986db6ce
   end
   
   def supergets
@@ -187,7 +237,7 @@ class Manager
   end
   
   def message_puts(content, user)
-    # puts "\n(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[32m#{user}:\e[0m\e[0m #{content}"
+    puts "\n(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[32m#{user}:\e[0m\e[0m #{content}"
     `say -v #{content.split("3t")[1]} '#{content.split("3t")[2]}'`
   end
 end
