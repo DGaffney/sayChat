@@ -1,46 +1,92 @@
 require 'rubygems'
 require 'xmpp4r'
+
+VOICES = ["agnes", "kathy", "princess", "vicki", "victoria", "bruce", "fred", "junior", "ralph", "albert", "bad news", "bahh", "bells", "boing", "bubbles", "cellos", "deranged", "good news", "hysterical", "pipe organ", "trinoids", "whisper", "zarvox"]
+CMD_REGEX = /^3t\/(.*)\//
+CMD = "3t/"
+SUBS = {
+         /\(\(\(\s*\)/ => "a 3t",
+         /\(\s*\)\)\)/ => "a 3t",
+         /\(\s*\)\)/ => "balls",
+         /\(\(\s*\)/ => "balls",
+         /:[\s-]?\)/ => "happy",
+         /:[\s-]?\D/ => "very happy",
+         /:'?[\s-]?\(/ => "sad",
+       }
+
 $sys_voice = false
 $user_voice = true
 $my_voice = "Vicki"
 $your_voice = "Agnes"
-VOICES = {"agnes" => "Agnes", "kathy" => "Kathy", "princess" => "Princess", "vicki" => "Vicki", "victoria" => "Victoria", "bruce" => "Bruce", "fred" => "Fred", "junior" => "Junior", "ralph" => "Ralph", "albert" => "Albert", "bad news" => "Bad News", "bahh" => "Bahh", "bells" => "Bells", "boing" => "Boing", "bubbles" => "Bubbles", "cellos" => "Cellos", "deranged" => "Deranged", "good news" => "Good News", "hysterical" => "Hysterical", "pipe organ" => "Pipe Organ", "trinoids" => "Trinoids", "whisper" => "Whisper", "zarvox" => "Zarvox"}
 
 class Manager
 
   attr_accessor :jid, :cl
-  
-  def sign_in
-    username = ARGV[0]
-    if username.nil?
-      superputs "Great job! What is your username?"
-      username = supergets
-    end
-    password = ARGV[1]
-    if password.nil?
-      superputs "And what is your password?"
-      password = supergets
-    end
-    superputs "I'm going to try signing you in now."
-    @cl = nil
-    while @cl.nil?
+
+  def go
+    sign_in(ARGV[0], ARGV[1])
+    enter_console
+  end
+
+  def sign_in(username=nil,password=nil)
+    while username.nil? || password.nil? || @cl.nil?
+      username ||= get_answer("What is your username?")
+      password ||= get_answer("And what is your username?")
+      superputs "I'm going to try signing you in now.", true
       begin
         @jid = Jabber::JID.new("#{username}@jabber.org")
         @cl = Jabber::Client.new(@jid)
         @cl.connect
         @cl.auth(password)
-        @cl.send(Jabber::Presence.new.set_type(:available))
+        break if @cl.is_connected?
       rescue
+        superputs "I am so sorry. I am having trouble connecting. Let's try again."
         @cl = nil
-        superputs "DID NOT WORK.", true
-        superputs "Great job! What is your username?", true
-        username = supergets
-        superputs "And what is your password?", true
-        password = supergets
-        superputs "I'm going to try signing you in now.", true
+        username = nil
+        password = nil
       end
     end
-    show_management
+    @cl.send(Jabber::Presence.new.set_type(:available))
+  end
+
+  def get_answer(q)
+    superputs q, true
+    print "> "
+    return supergets
+  end
+
+  def enter_console
+    # superputs "To see who else is online, type 'friends'."
+    superputs "To see your settings and edit them, type 'settings'.", true
+    superputs "To chat with people, type 'chat'", true
+    superputs "To leave our wonderful universe, type 'exit' at any time.", true
+    superputs "(No matter where you are in our program, you can always access these utilities by typing '()))' before any command)", true
+    action = get_answer("What would you like to do today, #{@jid.node}?")
+    loop do
+      run_command(action)
+      action = get_answer("What would you like to do today, #{@jid.node}?")
+    end
+  end
+
+  def run_command(answer)
+    case answer
+    # when "friends"
+    #   show_friends
+    when "settings"
+      show_settings
+    when "chat"
+      okay = nil
+      while okay != "y"
+        partner = get_answer("Who do you want to chat with? Please enter a username.")
+        okay = get_answer("You will enter chat with #{partner}. Does this look right? (y/n)")
+        while !["y", "n"].include?(okay)
+          okay = get_answer("Please try again...")
+        end
+      end
+      chat_loop(partner)
+    else
+      superputs "I'm sorry, I didn't understand that.", true
+    end
   end
 
   def show_settings
@@ -99,57 +145,20 @@ class Manager
     end
   end
 
-  def show_management
-    superputs "What would you like to do today, #{@jid.node}?", true
-    # superputs "To see who else is online, type 'friends'."
-    superputs "To see your settings and edit them, type 'settings'.", true
-    superputs "To chat with people, type 'chat'", true
-    superputs "To leave our wonderful universe, type 'exit' at any time.", true
-    superputs "(No matter where you are in our program, you can always access these utilities by typing '()))' before any command)", true
-    answer = supergets
-    loop do
-      run_command(answer)
-      answer = supergets
-    end
-  end
-
-  def run_command(answer)
-    case answer
-    # when "friends"
-    #   show_friends
-    when "settings"
-      show_settings
-    when "chat"
-      partner = nil
-      while partner.nil?
-        superputs "Who do you want to chat with? Please enter a username.", true
-        potential_partner = supergets
-        superputs "You will enter chat with #{potential_partner}. Does this look right? (y/n)", true
-        answer = supergets
-        while !["y", "n"].include?(answer)
-          superputs "Please try again...", true
-          answer = supergets
-        end
-        partner = potential_partner if answer == "y"
-      end
-      chat_loop(partner)
-    end
-  end
-  
   def chat_loop(user)
     @cl.add_message_callback do |m|
       case m.type
       when :chat
         if m.from.to_s.gsub(/@.*/, '').downcase == user.downcase
-          # Thread.new { message_puts m.body, user }.run
-          Thread.new { `say #{m.body}` }.run
-          puts m.inspect
+          voice, body = parse_message(m.body.to_s)
+          message_puts(body, user)
+          user_say(body, voice)
           print "(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[34myou:\e[0m\e[0m "
         end
       when :error
         puts "\n ERROR (#{user} MAYBE NOT AVAILABLE?)"
       else
-        puts "recieved other kind of response..."
+        puts "received other kind of response..."
         puts m.inspect
       end
     end
@@ -158,14 +167,64 @@ class Manager
     loop do
       print "(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[34myou:\e[0m\e[0m "
       message = supergets.strip
-      determine_function(message)
-      message = "3t#{$your_voice}3t#{message.gsub("'", "\\'")}"
-      @cl.send Jabber::Message.new("#{user}@jabber.org", message).set_type(:chat)
+      # if message[0,CMD.length] == CMD
+      cmd, msg = parse_input(message)
+      case cmd
+      when /help/
+        puts "YOU NEED HELP!"
+      when /voice=*+/
+        $your_voice = cmd.gsub("voice=",'')
+      when /voices/
+        puts VOICES.inspect
+      when nil
+        message = "3t/#{$your_voice}/#{message}"
+        @cl.send Jabber::Message.new("#{user}@jabber.org", message).set_type(:chat)
+      else
+        message = "3t/#{cmd}/#{message}"
+        @cl.send Jabber::Message.new("#{user}@jabber.org", message).set_type(:chat)
+      end
+
+      # determine_function(message)
+      # show the following:
+      # > 3t/help
+      # say in certain voice with out setting voice:
+      # > 3t/<voice>/ hello
+      # set voice:
+      # > 3t/voice=<voice>
+      # show voices:
+      # > 3t/voices
       print "\n"
     end
 
     @cl.close
 
+  end
+
+  def parse_input(i)
+    cmd = i.scan(/^#{CMD}([\w\s]*)/).flatten.first
+    msg = i.gsub(/^#{CMD}([\w\s]*)\/?/,'').strip
+    return cmd, msg
+  end
+
+  def parse_message(m)
+    # maybe can understand other commands, not just voice?
+    voice = m.scan(CMD_REGEX).flatten.first
+    # puts commands.inspect
+    body = m.gsub(CMD_REGEX,'')
+    return voice, body
+  end
+
+  def escape_for_say(s)
+    s.gsub(/\\*'/, "\\'")
+  end
+
+  def user_say(body, voice=$user_voice)
+    Thread.new { `say -v '#{voice}' '#{escape_for_say(body)}'` }.run
+  end
+
+  def message_puts(body, user)
+    puts "\n(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[32m#{user}:\e[0m\e[0m #{body}\n"
+    # Thread.new { `say -v '#{content.split("3t")[1]}' '#{content.split("3t")[2]}'` }.run
   end
 
   def determine_function(message)
@@ -174,18 +233,6 @@ class Manager
     elsif message[0..11].downcase == "3t: 4d3d3d3" || message[0..13].downcase == "())): 4d3d3d3" || message[0..13].downcase == "(((): 4d3d3d3"
       fourd3d3d3
     # elsif message[0..10].downcase == "3t: friends" || message[0..12].downcase == "())): friends" || message[0..12].downcase == "(((): friends"
-    end
-  end
-
-  def startup
-    superputs "Hello user at #{`hostname`}! So great to have you on our wonderful chat program. May I sign you in? (y/n)", true
-    answer = supergets
-    while !["y","n"].include?(answer.strip.downcase)
-      superputs "Sorry, try again.", true
-      answer = supergets
-    end
-    if answer.strip.downcase == "y"
-      sign_in
     end
   end
 
@@ -203,7 +250,7 @@ class Manager
     STDIN.flush
     STDOUT.flush
     answer = STDIN.gets.strip
-    puts "\t\t(GETS RECIEVES: #{answer.inspect})"
+    # puts "\t\t(GETS RECIEVES: #{answer.inspect})"
     if answer.downcase == "exit"
       exit
     else
@@ -211,11 +258,25 @@ class Manager
     end
   end
 
-  def message_puts(content, user)
-    puts "\n(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[32m#{user}:\e[0m\e[0m #{content.split("3t")[2]}\n"
-    `say -v '#{content.split("3t")[1]}' '#{content.split("3t")[2]}'`
+  def make_subs(s)
+    s = SUBS.inject(s) {|s,sub| s.gsub(sub[0],sub[1]) }
   end
+
+  ## this is totally useless
+  def startup
+    superputs "Hello user at #{`hostname`}! So great to have you on our wonderful chat program. May I sign you in? (y/n)", true
+    answer = supergets
+    while !["y","n"].include?(answer.strip.downcase)
+      superputs "Sorry, try again.", true
+      answer = supergets
+    end
+    if answer.strip.downcase == "y"
+      sign_in
+    end
+  end
+  ######
+
 end
 
 m = Manager.new
-m.startup
+m.go
