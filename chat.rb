@@ -11,7 +11,6 @@ class Manager
   attr_accessor :jid, :cl
   
   def sign_in
-<<<<<<< HEAD
     username = ARGV[0]
     if username.nil?
       superputs "Great job! What is your username?"
@@ -23,13 +22,6 @@ class Manager
       password = supergets
     end
     superputs "I'm going to try signing you in now."
-=======
-    superputs "Great job! What is your username?", true
-    username = supergets
-    superputs "And what is your password?", true
-    password = supergets
-    superputs "I'm going to try signing you in now.", true
->>>>>>> 43321ac119d5978d50362f560944f860986db6ce
     @cl = nil
     while @cl.nil?
       begin
@@ -40,12 +32,8 @@ class Manager
         @cl.send(Jabber::Presence.new.set_type(:available))
       rescue
         @cl = nil
-<<<<<<< HEAD
-        superputs "DID NOT WORK."
-        superputs "Great job! What is your username?"
-=======
+        superputs "DID NOT WORK.", true
         superputs "Great job! What is your username?", true
->>>>>>> 43321ac119d5978d50362f560944f860986db6ce
         username = supergets
         superputs "And what is your password?", true
         password = supergets
@@ -54,7 +42,7 @@ class Manager
     end
     show_management
   end
-    
+
   def show_settings
     superputs "SETTINGS!"
     superputs "To change your voice, type 'voice'", true
@@ -69,6 +57,7 @@ class Manager
       end
     end
   end
+
   def voice
     previous_voice = $voice
     superputs 'What do you want to sound like? (Choose from Agnes, Kathy, Princess, Vicki, Victoria, Bruce, Fred, Junior, Ralph, Albert, "Bad News", Bahh, Bells, Boing, Bubbles, Cellos, Deranged, "Good News", Hysterical, "Pipe Organ", Trinoids, Whisper, Zarvox)', true
@@ -86,9 +75,9 @@ class Manager
     if answer == "n"
       superputs "Ok. I am now going to change your voice back to your previous voice.", true
       $your_voice = previous_voice
-    end        
+    end
   end
-  
+
   def fourd3d3d3
     previous_voice = $voice
     superputs 'What do you want me to sound like? (Choose from Agnes, Kathy, Princess, Vicki, Victoria, Bruce, Fred, Junior, Ralph, Albert, "Bad News", Bahh, Bells, Boing, Bubbles, Cellos, Deranged, "Good News", Hysterical, "Pipe Organ", Trinoids, Whisper, Zarvox)', true
@@ -109,6 +98,7 @@ class Manager
       superputs "I now sound like this.", true
     end
   end
+
   def show_management
     superputs "What would you like to do today, #{@jid.node}?", true
     # superputs "To see who else is online, type 'friends'."
@@ -122,7 +112,7 @@ class Manager
       answer = supergets
     end
   end
-  
+
   def run_command(answer)
     case answer
     # when "friends"
@@ -155,10 +145,6 @@ class Manager
           Thread.new { `say #{m.body}` }.run
           puts m.inspect
           print "(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[34myou:\e[0m\e[0m "
-<<<<<<< HEAD
-=======
-          # @cl.send Jabber::Message.new("#{user}@jabber.org", "#{m.body}").set_type(:chat)
->>>>>>> 43321ac119d5978d50362f560944f860986db6ce
         end
       when :error
         puts "\n ERROR (#{user} MAYBE NOT AVAILABLE?)"
@@ -167,35 +153,30 @@ class Manager
         puts m.inspect
       end
     end
-    
+
     puts " (((  ) CHATTING WITH #{user.upcase} (((  ) "
     loop do
       print "(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[34myou:\e[0m\e[0m "
       message = supergets.strip
-<<<<<<< HEAD
-      # message = "3t#{$your_voice}3t#{message.gsub("'", "\\'")}"
-=======
       determine_function(message)
       message = "3t#{$your_voice}3t#{message.gsub("'", "\\'")}"
-      puts message.inspect
->>>>>>> 43321ac119d5978d50362f560944f860986db6ce
       @cl.send Jabber::Message.new("#{user}@jabber.org", message).set_type(:chat)
       print "\n"
     end
-    
+
     @cl.close
-    
+
   end
-  
+
   def determine_function(message)
     if message[0..8].downcase == "3t: voice" || message[0..10].downcase == "())): voice" || message[0..10].downcase == "(((): voice"
       voice
-    elsif message[0..11].downcase == "3t: 43d3d3d3" || message[0..13].downcase == "())): 43d3d3d3" || message[0..13].downcase == "(((): 43d3d3d3"
-      voice
+    elsif message[0..11].downcase == "3t: 4d3d3d3" || message[0..13].downcase == "())): 4d3d3d3" || message[0..13].downcase == "(((): 4d3d3d3"
+      fourd3d3d3
     # elsif message[0..10].downcase == "3t: friends" || message[0..12].downcase == "())): friends" || message[0..12].downcase == "(((): friends"
     end
   end
-  
+
   def startup
     superputs "Hello user at #{`hostname`}! So great to have you on our wonderful chat program. May I sign you in? (y/n)", true
     answer = supergets
@@ -207,12 +188,7 @@ class Manager
       sign_in
     end
   end
-  
-<<<<<<< HEAD
-  def superputs(content)
-    puts content
-    # `say -v #{$my_voice} '#{content.gsub("'", "").gsub(")", "\)").gsub("(", "\(").gsub("()))", " 3t ")}'` if $sys_voice == true
-=======
+
   def superputs(content, system=false)
     if system
       puts content
@@ -221,9 +197,8 @@ class Manager
       puts content
       `say -v #{$my_voice} '#{content.gsub("'", "").gsub(")", "\)").gsub("(", "\(").gsub("()))", " 3t ")}'` if $user_voice == true
     end
->>>>>>> 43321ac119d5978d50362f560944f860986db6ce
   end
-  
+
   def supergets
     STDIN.flush
     STDOUT.flush
@@ -235,10 +210,10 @@ class Manager
       return answer.downcase
     end
   end
-  
+
   def message_puts(content, user)
-    puts "\n(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[32m#{user}:\e[0m\e[0m #{content}"
-    `say -v #{content.split("3t")[1]} '#{content.split("3t")[2]}'`
+    puts "\n(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[32m#{user}:\e[0m\e[0m #{content.split("3t")[2]}\n"
+    `say -v '#{content.split("3t")[1]}' '#{content.split("3t")[2]}'`
   end
 end
 
