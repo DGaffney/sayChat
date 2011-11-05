@@ -1,9 +1,11 @@
 require 'rubygems'
 require 'xmpp4r'
 
+DEFAULT_VOICE = "fred"
 VOICES = ["agnes", "kathy", "princess", "vicki", "victoria", "bruce", "fred", "junior", "ralph", "albert", "bad news", "bahh", "bells", "boing", "bubbles", "cellos", "deranged", "good news", "hysterical", "pipe organ", "trinoids", "whisper", "zarvox"]
-CMD_REGEX = /^3t\/(.*)\//
 CMD = "3t/"
+CMD_STOP = "/"
+CMD_REGEX = /^#{CMD}(.*)#{CMD_STOP}/
 SUBS = {
          /\(\(\(\s*\)/ => "a 3t",
          /\(\s*\)\)\)/ => "a 3t",
@@ -12,9 +14,11 @@ SUBS = {
          /:[\s-]?\)/ => "happy",
          /:[\s-]?\D/ => "very happy",
          /:'?[\s-]?\(/ => "sad",
+         /\// => " slash ",
+         /=/ => " equals ",
        }
 
-$sys_voice = false
+$sys_voice = true
 $user_voice = true
 $my_voice = "Vicki"
 $your_voice = "Agnes"
@@ -47,6 +51,7 @@ class Manager
       end
     end
     @cl.send(Jabber::Presence.new.set_type(:available))
+    superputs "Great. You're signed in.", true
   end
 
   def get_answer(q)
@@ -60,7 +65,7 @@ class Manager
     superputs "To see your settings and edit them, type 'settings'.", true
     superputs "To chat with people, type 'chat'", true
     superputs "To leave our wonderful universe, type 'exit' at any time.", true
-    superputs "(No matter where you are in our program, you can always access these utilities by typing '()))' before any command)", true
+    # superputs "(No matter where you are in our program, you can always access these utilities by typing '()))' before any command)", true
     action = get_answer("What would you like to do today, #{@jid.node}?")
     loop do
       run_command(action)
@@ -163,46 +168,82 @@ class Manager
       end
     end
 
-    puts " (((  ) CHATTING WITH #{user.upcase} (((  ) "
+    superputs "Entering chat. Type '#{CMD}help' to see available commands."
+    superputs " (((  ) You are now chatting with #{user} (((  ) ", true
     loop do
       print "(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[34myou:\e[0m\e[0m "
       message = supergets.strip
+      route_command(message, user)
       # if message[0,CMD.length] == CMD
-      cmd, msg = parse_input(message)
-      case cmd
-      when /help/
-        puts "YOU NEED HELP!"
-      when /voice=*+/
-        $your_voice = cmd.gsub("voice=",'')
-      when /voices/
-        puts VOICES.inspect
-      when nil
-        message = "3t/#{$your_voice}/#{message}"
-        @cl.send Jabber::Message.new("#{user}@jabber.org", message).set_type(:chat)
-      else
-        message = "3t/#{cmd}/#{message}"
-        @cl.send Jabber::Message.new("#{user}@jabber.org", message).set_type(:chat)
-      end
 
       # determine_function(message)
-      # show the following:
-      # > 3t/help
-      # say in certain voice with out setting voice:
-      # > 3t/<voice>/ hello
-      # set voice:
-      # > 3t/voice=<voice>
-      # show voices:
-      # > 3t/voices
-      print "\n"
+      # print "\n"
     end
 
     @cl.close
 
   end
 
+  def route_command(m, user=nil)
+    # puts "got message: #{m}"
+    cmd, msg = parse_input(m)
+    # puts "cmd: #{cmd}"
+    # puts "msg: #{msg}"
+    case cmd
+    when /help/
+      show_help
+    when /voice=.+/
+      voice = cmd.gsub("voice=",'')
+      set_voice(voice)
+    when /voices/
+      list_voices
+    when /myvoice/
+      superputs "I am #{$my_voice}."
+    when /hello/
+      superputs "Hello #{@jid.node}. This is what I sound like.", true
+    when nil
+      message = "#{CMD}#{$my_voice}#{CMD_STOP}#{msg}"
+      @cl.send Jabber::Message.new("#{user}@jabber.org", message).set_type(:chat)
+    else
+      message = "#{CMD}#{cmd}#{CMD_STOP}#{msg}"
+      @cl.send Jabber::Message.new("#{user}@jabber.org", message).set_type(:chat)
+    end
+  end
+
+  def show_help
+    superputs "I am here to help you. Here is what you can do:", true
+    superputs "#{CMD}help"
+    superputs "  Shows this."
+    superputs "#{CMD}<voice>#{CMD_STOP}<message>"
+    superputs "  Says <message> in <voice>."
+    superputs "#{CMD}voice=<voice>"
+    superputs "  Sets voice to <voice>."
+    superputs "#{CMD}voices"
+    superputs "  Shows voices."
+    superputs "#{CMD}myvoice"
+    superputs "  Tells you my voice."
+    superputs "#{CMD}hello"
+    superputs "  Says hello."
+  end
+
+  def set_voice(voice)
+    if VOICES.include?(voice.downcase)
+      $my_voice = voice
+      superputs "Your voice is now #{voice}.", true
+    else
+      superputs "Sorry, I don't know that voice", true
+    end
+  end
+
+  def list_voices
+    superputs "These are all of the voices...", true
+    # superputs VOICES.inspect, true
+    VOICES.each {|v| puts v; say(v,v) if $sys_voice }
+  end
+
   def parse_input(i)
-    cmd = i.scan(/^#{CMD}([\w\s]*)/).flatten.first
-    msg = i.gsub(/^#{CMD}([\w\s]*)\/?/,'').strip
+    cmd = i.scan(/^#{CMD}([\w\s=]*)/).flatten.first
+    msg = i.gsub(/^#{CMD}([\w\s=]*)#{CMD_STOP}?/,'').strip
     return cmd, msg
   end
 
@@ -215,11 +256,11 @@ class Manager
   end
 
   def escape_for_say(s)
-    s.gsub(/\\*'/, "\\'")
+    s.gsub(/\\*"/, '\"').gsub('(','\(').gsub(')','\)')
   end
 
-  def user_say(body, voice=$user_voice)
-    Thread.new { `say -v '#{voice}' '#{escape_for_say(body)}'` }.run
+  def user_say(body, voice=$your_voice)
+    Thread.new { say body, voice }.run
   end
 
   def message_puts(body, user)
@@ -237,13 +278,17 @@ class Manager
   end
 
   def superputs(content, system=false)
-    if system
-      puts content
-      `say -v #{$my_voice} '#{content.gsub("'", "").gsub(")", "\)").gsub("(", "\(").gsub("()))", " 3t ")}'` if $sys_voice == true
-    else
-      puts content
-      `say -v #{$my_voice} '#{content.gsub("'", "").gsub(")", "\)").gsub("(", "\(").gsub("()))", " 3t ")}'` if $user_voice == true
+    puts content
+    if (system && $sys_voice) || (!system && $user_voice)
+      # `say -v #{$my_voice} '#{content.gsub("'", "").gsub(")", "\)").gsub("(", "\(").gsub("()))", " 3t ")}'`
+      # `say -v #{$my_voice} '#{escape_for_say(make_subs(content))}'`
+      say content, $my_voice
     end
+  end
+
+  def say(body, voice=$my_voice)
+    `say -v '#{voice}' "#{escape_for_say(make_subs(body))}"`
+    # `say -v '#{voice}' "#{body}"`
   end
 
   def supergets
