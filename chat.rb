@@ -35,7 +35,7 @@ class Manager
   def sign_in(username=nil,password=nil)
     while username.nil? || password.nil? || @cl.nil?
       username ||= get_answer("What is your username?")
-      password ||= get_answer("And what is your username?")
+      password ||= get_answer("And what is your password?")
       superputs "I'm going to try signing you in now.", true
       begin
         @jid = Jabber::JID.new("#{username}@jabber.org")
@@ -161,7 +161,7 @@ class Manager
           print "(#{Time.now.strftime("%k:%M").strip}) \e[1m\e[34myou:\e[0m\e[0m "
         end
       when :error
-        puts "\n ERROR (#{user} MAYBE NOT AVAILABLE?)"
+        superputs "\nI'm sorry. It looks like #{user} is not available."
       else
         puts "received other kind of response..."
         puts m.inspect
@@ -299,7 +299,7 @@ class Manager
     if answer.downcase == "exit"
       exit
     else
-      return answer.downcase
+      return answer
     end
   end
 
